@@ -18,7 +18,6 @@ dataset = shuffle(dataset)
 X = dataset.iloc[:, 0:11].values
 y = dataset.iloc[:, 11].values
 
-
 # Show the dimensions of dataset
 print(dataset.shape)
 
@@ -90,7 +89,8 @@ plt.show()
 
 # Fitting SVC classifier to the Training set
 from sklearn.svm import SVC
-classifier = SVC(kernel = 'rbf', random_state = random_state)
+# classifier = SVC(kernel = 'rbf', random_state = random_state)
+classifier = SVC(C = 100, gamma = 1.0, class_weight = 'balanced', random_state = random_state)
 classifier.fit(X_train, y_train)
 
 # Fitting Random Forest classifier to the Training set (best classifier)
@@ -100,15 +100,17 @@ classifier.fit(X_train, y_train)
 
 # Plotting the feature importances
 importances = classifier.feature_importances_
+names = dataset.columns
+importances, names = zip(*sorted(zip(importances, names)))
 std = np.std([tree.feature_importances_ for tree in classifier.estimators_],
              axis = 0)
 indices = np.argsort(importances)[::-1]
 
 plt.figure()
 plt.title("Feature importances")
-plt.bar(range(X_train.shape[1]), importances[indices], color = 'r', yerr = std[indices], align = 'center')
-plt.xticks(range(X_train.shape[1]), indices)
-plt.xlim([-1, X_train.shape[1]])
+plt.barh(range(len(names)), importances, align = 'center', color = 'r', xerr = std[indices])
+plt.yticks(range(len(names)), names)
+plt.ylabel('Features')
 plt.show()
 
 # Predicting the Test set results
@@ -134,14 +136,15 @@ plt.show()
 
 # Applying grid search to find the best model and the best parameters (SVC)
 from sklearn.model_selection import GridSearchCV
-"""
+
 # SVC
 parameters = [{'C': [1, 10, 100, 1000], 'kernel': ['linear']},
-              {'C': [1, 10, 100, 1000], 'kernel': ['rbf'], 'gamma': [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.8, 0.9]}]
-"""
+              {'C': [1, 10, 100, 1000], 'kernel': ['rbf'], 'gamma': [0.1, 0.2, 0.3, 0.4, 0.5, 0.7, 0.8, 0.9, 1.0]}]
+
 # Random Forest Classifier
-parameters = [{'criterion': ['gini'], 'n_estimators': [10, 50, 100, 200, 300, 400, 500]},
-              {'criterion': ['entropy'], 'n_estimators': [10, 50, 100, 200, 300, 400, 500], 'max_features': ['auto', 'sqrt', 'log2', None]}]
+parameters = [{'criterion': ['gini'], 'n_estimators': [10, 15, 20, 50, 100, 200, 300, 400, 500]},
+              {'criterion': ['entropy'], 'n_estimators': [10, 15, 20, 50, 100, 200, 300, 400, 500], 'max_features': ['auto', 'sqrt', 'log2', None]}]
+
 grid_search = GridSearchCV(estimator = classifier,
                            param_grid = parameters,
                            scoring = 'accuracy',
