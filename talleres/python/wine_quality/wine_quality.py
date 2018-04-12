@@ -95,7 +95,7 @@ classifier.fit(X_train, y_train)
 
 # Fitting Random Forest classifier to the Training set (best classifier)
 from sklearn.ensemble import RandomForestClassifier
-classifier = RandomForestClassifier(n_estimators = 200, criterion = 'gini', random_state = random_state)
+classifier = RandomForestClassifier(n_estimators = 200, criterion = 'entropy', random_state = random_state)
 classifier.fit(X_train, y_train)
 
 # Plotting the feature importances
@@ -113,8 +113,19 @@ plt.yticks(range(len(names)), names)
 plt.ylabel('Features')
 plt.show()
 
+# Tree-based feature selection
+from sklearn.feature_selection import chi2
+from sklearn.feature_selection import SelectKBest
+X_new = SelectKBest(chi2, k = 2).fit_transform(X, y)
+X_new.shape
+
+# Splitting again the X and y with selected features
+X_train, X_test, y_train, y_test = train_test_split(X_new, y, test_size = 1/3, random_state = random_state)
+
 # Predicting the Test set results
+classifier.fit(X_train, y_train)
 y_pred = classifier.predict(X_test)
+
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
@@ -153,3 +164,8 @@ grid_search = GridSearchCV(estimator = classifier,
 grid_search = grid_search.fit(X_train, y_train)
 best_accuracy = grid_search.best_score_
 best_parameters = grid_search.best_params_
+
+# Getting classification reports
+from sklearn.metrics import classification_report
+target_names = ['score 3', 'score 4', 'score 5', 'score 6', 'score 7', 'score 8']
+classification_report(y_test, y_pred, target_names = target_names)
